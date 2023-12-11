@@ -7,6 +7,7 @@ A module for the class, FileStorage
 import json
 from os.path import exists
 from models.base_model import BaseModel
+from models.user import User
 
 
 class FileStorage:
@@ -16,6 +17,11 @@ class FileStorage:
     """
     __file_path = "file.json"
     __objects = {}
+
+    CLASSES = {
+        'BaseModel': BaseModel,
+        'User': User
+    }
 
     def all(self):
         """
@@ -58,3 +64,24 @@ class FileStorage:
 
                     instance = cls(**value)
                     FileStorage.__objects[key] = instance
+
+    def serialize(self):
+        """
+        Serialize object to JSON
+        """
+        serialize_obj = {}
+        for key, obj in self.__objects.items():
+            serialize_obj[key] = obj.to_dict()
+
+        return serialized_obj
+
+    def deserialize(self, json_dict):
+        """
+        Deserializes JSON to object
+        """
+        for key, value in json_dict.items():
+            class_name, obj_id = key.split('.')
+            cls = self.CLASSES.get(class_name)
+            if cls:
+                instance = cls(**value)
+                self.__objects[key] = instance
